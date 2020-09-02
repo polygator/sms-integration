@@ -1,0 +1,35 @@
+#!/bin/sh
+
+#echo "[$1] type:$2 time:$3 sim:$4 from:$5 imci:$6 csca:$7 body:$8" >>$TO_FILE
+
+TO_FILE="/vrem/curl_log.txt"
+URI="http://127.0.0.1:9980"
+
+if [ $2 = "ring" ] ; then
+    URL=$URI"/ttt/index.php?incomingNumber=$5&testnum=$4&other=$6"
+else
+    URL=$URI"/ttt/index.php?sender=$5&testnum=$4&text=$8&SMSC=$7&other=$6"
+fi 
+
+#echo `date +"%d.%m.%Y %T"`>>$TO_FILE
+echo >>$TO_FILE
+echo `date +"%d.%m.%Y %T"`" ["$1"] "$URL >>$TO_FILE
+RT=0
+
+curl --url "$URL" --connect-timeout 10 --silent --show-error >>$TO_FILE
+RT=$?
+if [ "$RT" -ne 0 ] ; then
+    RETC="CURL ERROR.["$RT"]. "
+    if [ "$RT" -eq 7 ] ; then
+	RETC=$RETC"Failed connect to host '$URI'"
+    else
+	if [ "$RT" -eq 6 ] ; then
+	    RETC=$RETC"Remote host was not resolved '$URI'"
+	fi
+    fi
+    echo $RETC >>$TO_FILE
+fi
+echo >>$TO_FILE
+
+exit $RT
+
